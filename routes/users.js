@@ -207,17 +207,8 @@ router.put('/add-to-cart/:id', async function(req, res, next){
 
   const user = await db().collection('users').findOneAndUpdate({
     id: userToUpdate
-  },
-  {
-    $set: {
-      email: email,
-      password: password,
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: phoneNumber
-    }
-
   }
+
   
   )
 
