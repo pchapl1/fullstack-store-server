@@ -11,9 +11,6 @@ const https = require('https')
 
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
 
 
 // post route
@@ -75,7 +72,7 @@ router.post('/register', async function(req, res, next){
   await db().collection('users').insertOne(user)
 
   const test = await db().collection('users').find({})
-  console.log(test)
+
   res.json({
     success: true,
     message : "user created successfully"
@@ -198,6 +195,40 @@ router.put('/update-user/:id', async function(req, res, next){
   })
 })
 
+
+// get user cart info
+router.get('/get-cart/:email', async function(req, res, next){
+
+  const userEmail = req.params.email
+
+  // find the user in db
+  const user = await db().collection('users').findOne({
+    email: userEmail
+  })
+  
+  if (!user) {
+    res.json({
+      success: false,
+      message: 'no user found',
+      user: 'user not found'
+    })  
+    return
+  }
+
+  console.log('here')
+  
+  // send the user cart to client
+  res.json({
+    success: true,
+    message: 'you got the cart',
+    user : user
+  })
+  
+  let userCartLength = user.cart.length
+
+  return userCartLength
+})
+
 router.put('/add-to-cart/:id', async function(req, res, next){
 
   const userToUpdate = req.params.id
@@ -212,7 +243,7 @@ router.put('/add-to-cart/:id', async function(req, res, next){
   
   )
 
-  console.log(user)
+
 
   res.json({
     success: true,
@@ -226,7 +257,7 @@ router.get('/products/all', async function(req, res, next){
   const products = await fetch(url).then((response) => {
     return response.json()
     }).then((data) => {
-    console.log(data)
+
     const productData = data
     return productData
  })
