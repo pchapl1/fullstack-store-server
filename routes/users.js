@@ -11,7 +11,30 @@ const https = require('https')
 
 
 /* GET users listing. */
+router.get('/get-user/:email', async function(req, res, next){
+  console.log('getting user')
 
+  const email = req.params.email
+
+  const user = await db().collection('users').findOne({
+    email: email
+  })
+
+  if (!user) {
+    res.json({
+      success: false,
+      user: 'user not found'
+    })
+
+  }
+
+  res.json({
+    success: true,
+    user: user
+  })
+  return user
+
+})
 
 // post route
 router.post('/register', async function(req, res, next){
@@ -229,25 +252,64 @@ router.get('/get-cart/:email', async function(req, res, next){
   return userCartLength
 })
 
-router.put('/add-to-cart/:id', async function(req, res, next){
 
+router.get('/cart-page/:email', async function(req, res, next){
+
+  console.log(req.params.email)
+  const userEmail = req.params.email
+
+  // find the user in db
+  const user = await db().collection('users').findOne({
+    email: userEmail
+  })
+  
+  if (!user) {
+    res.json({
+      success: false,
+      message: 'no user found',
+      user: 'user not found'
+    })  
+    return
+  }
+
+  console.log('here')
+  
+  // send the user cart to client
+  res.json({
+    success: true,
+    message: 'you got the cart',
+    user : user
+  })
+  
+  let userCart = user.cart
+
+  return userCart
+})
+
+
+router.put('/add-to-cart/:id', async function(req, res, next){
+  console.log('in add to cart')
   const userToUpdate = req.params.id
 
-  const productsToAdd = req.body.cart
+  console.log(`user to update: ${userToUpdate} `)
 
+  const productToAdd = req.body.product
+
+  console.log(`product to add: ${productToAdd} `)
 
   const user = await db().collection('users').findOneAndUpdate({
     id: userToUpdate
+  }, 
+  {
+    $push : {cart : productToAdd}
   }
-
   
   )
 
-
-
   res.json({
     success: true,
-    message: 'user updated successfully'
+    message: 'user updated successfully',
+    cart : user.cart
   })
 })
 
