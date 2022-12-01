@@ -297,6 +297,11 @@ router.put('/add-to-cart/:id', async function(req, res, next){
 
   console.log(`product to add: ${productToAdd} `)
 
+  const user1 = await db().collection('users').findOne({
+    id: userToUpdate
+  })
+  
+
   const user = await db().collection('users').findOneAndUpdate({
     id: userToUpdate
   }, 
@@ -306,10 +311,57 @@ router.put('/add-to-cart/:id', async function(req, res, next){
   
   )
 
+
+
   res.json({
     success: true,
     message: 'user updated successfully',
-    cart : user.cart
+    userCart : user1.cart
+  })
+})
+
+router.put('/remove-from-cart/:id', async function(req, res, next){
+  console.log('in remove from cart in app.js ')
+  const userToUpdate = req.params.id
+
+  console.log(`user to update: ${userToUpdate} `)
+
+  const productToRemove = req.body.productIndex
+
+  console.log(`product to remove: ${productToRemove} `)
+
+  // get the user 
+  const user1 = await db().collection('users').findOne({
+    id: userToUpdate
+  })
+  
+  // make a copy of the user cart
+  let cartCopy = [...user1.cart]
+
+  console.log(user1.cart.length)
+  // remove the element at the index passed into the function
+  let newCart = cartCopy.splice(productToRemove, 1)
+
+
+  const user = await db().collection('users').findOneAndUpdate({
+    id: userToUpdate
+  }, 
+  {
+    $set : {cart : cartCopy}
+  }
+  
+  )
+  const updatedUser = await db().collection('users').findOne({
+    id: userToUpdate
+  })
+  console.log(updatedUser.cart.length)
+
+
+
+  res.json({
+    success: true,
+    message: 'user updated successfully',
+    userCart : updatedUser.cart.length
   })
 })
 
