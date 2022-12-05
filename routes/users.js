@@ -168,24 +168,24 @@ router.post('/login', async function(req, res, next){
 })
 
 router.put('/update-user/:id', async function(req, res, next){
+  console.log('updating user...')
 
   const userToUpdate = req.params.id
 
+  console.log(req.body)
   const email = req.body.email
-  const password = req.body.password
   const firstName = req.body.firstName
   const lastName = req.body.lastName
-  const phoneNumber = req.body.lastName
-
+  const phoneNumber = req.body.phoneNumber
+  console.log(lastName)
   const userData = {
     email,
-    password,
     firstName,
     lastName,
-    phoneNumber
+    phoneNumber,
   }
 
-  const validatedUser =  validateUserData(userData)
+  const validatedUser =  validateUserData(userData, update=true)
 
   if (!validatedUser.isValid) {
     return res.json({
@@ -200,7 +200,6 @@ router.put('/update-user/:id', async function(req, res, next){
   {
     $set: {
       email: email,
-      password: password,
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber
@@ -210,11 +209,12 @@ router.put('/update-user/:id', async function(req, res, next){
   
   )
 
-  console.log(user)
+  // console.log(user)
 
   res.json({
     success: true,
-    message: 'user updated successfully'
+    message: 'user updated successfully',
+    user: user
   })
 })
 

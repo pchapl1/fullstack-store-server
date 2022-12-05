@@ -17,22 +17,23 @@ const validateUserData = (userData, update) => {
         }
     }
 
-    // check to see is password in userData
-    if (!userData.password ) {
+    if (!update)
+        // check to see is password in userData
+        if (!userData.password ) {
 
-        return {
-            isValid : false,
-            message : "you must provide a password"
+            return {
+                isValid : false,
+                message : "you must provide a password"
+            }
         }
-    }
 
-    // check length of password
-    if (userData.password < 8) {
-        return {
-            isValid : false,
-            message : "password must be at least 8 characters"
+        // check length of password
+        if (userData.password < 8) {
+            return {
+                isValid : false,
+                message : "password must be at least 8 characters"
+            }
         }
-    }
 
     return {
         isValid : true,
