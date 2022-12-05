@@ -291,32 +291,28 @@ router.put('/add-to-cart/:id', async function(req, res, next){
   console.log('in add to cart')
   const userToUpdate = req.params.id
 
-  console.log(`user to update: ${userToUpdate} `)
-
   const productToAdd = req.body.product
 
   console.log(`product to add: ${productToAdd} `)
 
-  const user1 = await db().collection('users').findOne({
-    id: userToUpdate
-  })
-  
-
   const user = await db().collection('users').findOneAndUpdate({
     id: userToUpdate
-  }, 
-  {
-    $push : {cart : productToAdd}
-  }
-  
+    }, 
+    {
+      $push : {cart : productToAdd}
+    }
   )
+
+  const updatedUser = await db().collection('users').findOne({
+    id: userToUpdate
+  })
 
 
 
   res.json({
     success: true,
     message: 'user updated successfully',
-    userCart : user1.cart
+    userCart : updatedUser.cart.length
   })
 })
 
@@ -338,7 +334,6 @@ router.put('/remove-from-cart/:id', async function(req, res, next){
   // make a copy of the user cart
   let cartCopy = [...user1.cart]
 
-  console.log(user1.cart.length)
   // remove the element at the index passed into the function
   let newCart = cartCopy.splice(productToRemove, 1)
 
@@ -354,7 +349,7 @@ router.put('/remove-from-cart/:id', async function(req, res, next){
   const updatedUser = await db().collection('users').findOne({
     id: userToUpdate
   })
-  console.log(updatedUser.cart.length)
+
 
 
 
@@ -385,7 +380,7 @@ router.get('/products/all', async function(req, res, next){
 
 
 
-router.get('/orders/all', function(req, res, next){
+router.get('/orders/all', async  function(req, res, next){
 
   res.json( {
       success: true,
@@ -393,7 +388,7 @@ router.get('/orders/all', function(req, res, next){
   })
 })
 
-router.get('/orders/:id', function(req, res, next){
+router.get('/orders/:id', async function(req, res, next){
 
   res.json( {
       success: true,
@@ -401,12 +396,51 @@ router.get('/orders/:id', function(req, res, next){
   })
 })
 
-router.post('/orders/create-order', function(req, res, next){
+router.get('/checkout/:id', async function(req, res, next){
+
+  const userId = req.params.id
+
+  // get the user from the db
+  const user = await db().collection('users').findOne({
+    id: userId
+  })
+
+  // create new order from user data
+  if (user.cart.length > 0) {
+    const newOrder = {
+        id : uuid(),
+        userId : user.id,
+        items : user.cart,
+        orderDate: new Date()
+    }
+    const order = await db().collection('orders').insertOne(newOrder)
+  
+    const updatedUser = await db().collection('users').findOneAndUpdate({
+        id : user.id
+    }, 
+    {
+        $set : {cart : []}
+    }
+    )
+    
+    } else {
+      res.json({
+      success: false,
+      message: "something went wrong"
+    })
+  }
+  // get the user from the db
+  const editedUser = await db().collection('users').findOne({
+    id: userId
+  })
+
 
   res.json( {
-      success: true,
-      message: "orders post"
-  })
+    success: true,
+    message: "Your order has been placed!",
+    userCart: editedUser.cart
 })
+})
+
 
 module.exports = router;

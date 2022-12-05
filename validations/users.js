@@ -35,6 +35,35 @@ const validateUserData = (userData, update) => {
             }
         }
 
+    // check first name
+    if (userData.firstName.length < 2) {
+        return {
+            isValid : false,
+            message : "First name must be at least 2 characters"
+        }
+    }
+
+    if (userData.lastName.length < 2) {
+        return {
+            isValid : false,
+            message : "last name must be at least 2 characters"
+        }
+    }
+
+    if (userData.phoneNumber.length < 10) {
+        return {
+            isValid : false,
+            message : "Phone number must be at 10 characters"
+        }
+    }
+    
+    if (userData.phoneNumber.length < 10) {
+        return {
+            isValid : false,
+            message : "Phone number must be at 10 characters"
+        }
+    }
+
     return {
         isValid : true,
         message : "user data is valid"
