@@ -62,7 +62,10 @@ router.post('/register', async function(req, res, next){
 
   const userData = {
     email: email,
-    password: password
+    password: password,
+    firstName: firstName,
+    lastName: lastName,
+    phoneNumber: phoneNumber
   }
   
   // validate user data
@@ -88,13 +91,21 @@ router.post('/register', async function(req, res, next){
     lastName,
     phoneNumber,
     id: uuid(),
-    cart : []
+    cart : [],
+    orderHistory : []
   }
   
   // insert user into db
   await db().collection('users').insertOne(user)
 
-  const test = await db().collection('users').find({})
+  const wishlist = {
+    id: uuid(),
+    userId: user.id,
+    items: []
+  }
+
+  // create user wishlist at the same time as user
+  await db().collection('wishlists').insertOne(wishlist)
 
   res.json({
     success: true,
@@ -368,8 +379,12 @@ router.get('/products/all', async function(req, res, next){
     }).then((data) => {
 
     const productData = data
-    return productData
+
+    return productData    
+
  })
+
+
 
   res.json({
     success: true,
@@ -377,7 +392,6 @@ router.get('/products/all', async function(req, res, next){
     products : products
   })
   })
-
 
 
 router.get('/orders/all', async  function(req, res, next){
@@ -390,15 +404,40 @@ router.get('/orders/all', async  function(req, res, next){
 
 router.get('/orders/:id', async function(req, res, next){
 
-  res.json( {
-      success: true,
-      message: "orders 1"
-  })
-})
-
-router.get('/checkout/:id', async function(req, res, next){
+  console.log('in orders')
 
   const userId = req.params.id
+
+
+  const orders = await db().collection('orders').find({
+    userId : userId
+  }).toArray()
+
+  console.log(orders)
+
+  if (orders.length > 0) {
+    res.json( {
+        success: true,
+        message: "orders 1",
+        orders: orders
+    })
+
+  }
+  else{
+    res.json({
+      success: false,
+      message: "no orders yet",
+      orders: orders
+    })
+  }
+
+})
+
+router.get('/checkout/:id/:total', async function(req, res, next){
+
+  const userId = req.params.id
+  const orderTotal = req.params.total
+
 
   // get the user from the db
   const user = await db().collection('users').findOne({
@@ -411,16 +450,19 @@ router.get('/checkout/:id', async function(req, res, next){
         id : uuid(),
         userId : user.id,
         items : user.cart,
-        orderDate: new Date()
+        orderDate: new Date(),
+        total: orderTotal
     }
     const order = await db().collection('orders').insertOne(newOrder)
-  
+
     const updatedUser = await db().collection('users').findOneAndUpdate({
         id : user.id
     }, 
     {
-        $set : {cart : []}
+        $set : {cart : []}, 
+        $push : {orderHistory : newOrder.id}
     }
+
     )
     
     } else {
@@ -441,6 +483,74 @@ router.get('/checkout/:id', async function(req, res, next){
     userCart: editedUser.cart
 })
 })
+
+
+router.get('/search-product/:myQuery', async function(req, res, next){
+    console.log('searching for product...')
+    console.log(req.params.myQuery)
+    if (!req.params.myQuery) {
+      console.log('no query')
+      res.json({
+        success: false,
+        product: 'Product not found'
+      })
+      return
+    }
+
+    
+
+    try {
+      const product = await db().collection('products').findOne({
+        title: req.params.myQuery
+      })
+      console.log(product)
+      res.json({
+        success: true,
+        product: product
+    })
+    
+    } catch (error) {
+      console.log(error)
+      res.json({
+        success: false,
+        product: 'Product not found'
+      })
+    }
+
+
+
+})
+
+
+router.put('/add-to-wishlist/:userId', async function(req, res, next){
+
+  console.log('in add to wish_list')
+
+  const userId = req.params.userId
+
+
+  try {
+    await db().collection('wishlists').findOneAndUpdate({
+      userId : userId
+    },
+    {
+      $push : { items : req.body.product }
+    }
+    )
+    
+  } catch (error) {
+    console.log(error)
+  }
+
+  
+
+  res.json({
+    success: true,
+    message: 'added to wishlist',
+
+  })
+  })
+
 
 
 module.exports = router;
