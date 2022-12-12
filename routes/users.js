@@ -569,4 +569,37 @@ router.get('/wishlist/:userId', async function(req, res, next){
   })
 })
 
+
+router.put('/remove-from-wishlist/:userId', async function(req, res, next){
+  console.log('in remove from wishlist server')
+
+  const wishlist = await db().collection('wishlists').findOne({
+    userId: req.params.userId
+  })
+
+  if (Array.isArray(wishlist.items)) {
+    console.log('its an array')
+  }
+
+
+  const foo = wishlist.items.splice(req.body.productIndex, 1)
+
+  console.log(wishlist.items)
+
+  const changedWishlist = await db().collection('wishlists').findOneAndUpdate({
+    userId: req.params.userId
+  },
+  {
+    $set : {items: wishlist.items}
+  }
+  )
+
+  res.json({
+    success: true,
+    message: 'removed product from wishlist',
+
+    
+  })
+})
+
 module.exports = router;
