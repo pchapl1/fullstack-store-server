@@ -552,5 +552,21 @@ router.put('/add-to-wishlist/:userId', async function(req, res, next){
   })
 
 
+router.get('/wishlist/:userId', async function(req, res, next){
+
+
+  const userId = req.params.userId
+
+  const userWishlist = await db().collection('wishlists').findOne({
+    userId : userId
+  })
+
+
+  res.json({
+    success: true,
+    message: 'in wishlist page',
+    wishlist : userWishlist.items
+  })
+})
 
 module.exports = router;
